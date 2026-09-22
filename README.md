@@ -18,7 +18,7 @@ live.
 
 ```
 MAX30102 ─┐
-DS18B20  ─┼─► ESP8266 ──Wi-Fi──► Supabase (Postgres)
+DS18B20  ─┼─► ESP32 ──Wi-Fi──► Supabase (Postgres)
 MPU6050  ─┘                           │
                                       ▼
                           FastAPI  ┌──────────────────┐
