@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Theme tokens
+
+   Every value is an "R G B" triple so Tailwind's /opacity modifiers work
+   (see tailwind.config.js). Flipping data-theme on <html> reskins everything.
+   ========================================================================== */
+
+@layer base {
+  /* ---------------------------------------------------------------- dark  */
+  :root,
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+
+    --c-ink-950: 5 7 13;
+    --c-ink-900: 10 14 24;
+    --c-ink-850: 15 20 33;
+    --c-ink-800: 20 26 43;
+    --c-ink-700: 29 37 55;
+    --c-ink-600: 42 51 72;
+
+    /* contrast colour: light in the dark theme */
+    --c-tint: 255 255 255;
+    --c-shadow: 0 0 0;
+
+    /* text ramp, most prominent to least */
+    --c-t200: 226 232 240;
+    --c-t300: 203 213 225;
+    --c-t400: 148 163 184;
+    --c-t500: 100 116 139;
+    --c-t600: 71 85 105;
+    --c-t700: 51 65 85;
+
+    --c-accent: 6 182 212;
+
+    --c-vital-hr: 244 63 94;
+    --c-vital-spo2: 6 182 212;
+    --c-vital-temp: 245 158 11;
+    --c-vital-move: 167 139 250;
+
+    --c-status-normal: 16 185 129;
+    --c-status-warning: 245 158 11;
+    --c-status-critical: 239 68 68;
+
+    --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset,
+      0 20px 40px -24px rgb(0 0 0 / 0.9);
+
+    --page-glow-1: rgb(6 182 212 / 0.13);
+    --page-glow-2: rgb(168 85 247 / 0.12);
+    --page-glow-3: rgb(244 63 94 / 0.09);
+
+    --grid-line: rgb(255 255 255 / 0.05);
+  }
+
+  /* --------------------------------------------------------- milky white  */
+  /* A warm paper palette rather than a cold #fff: long monitoring shifts are
+     easier on a cream background, and pure white beside saturated vital
+     colours vibrates unpleasantly. */
+  :root[data-theme='light'] {
+    color-scheme: light;
+
+    --c-ink-950: 250 249 245; /* page             */
+    --c-ink-900: 255 255 255; /* raised surface   */
+    --c-ink-850: 247 245 239;
+    --c-ink-800: 241 239 231;
+    --c-ink-700: 232 229 219;
+    --c-ink-600: 214 210 198;
+
+    /* contrast colour: dark in the light theme */
+    --c-tint: 28 27 24;
+    --c-shadow: 120 113 96;
+
+    /* ramp inverted: 200 stays the most prominent */
+    --c-t200: 28 27 24;
+    --c-t300: 48 46 42;
+    --c-t400: 82 79 71;
+    --c-t500: 112 108 98;
+    --c-t600: 138 133 121;
+    --c-t700: 168 163 149;
+
+    --c-accent: 193 91 58; /* terracotta */
+
+    /* Darkened so they hold their weight against cream */
+    --c-vital-hr: 214 40 74;
+    --c-vital-spo2: 8 132 158;
+    --c-vital-temp: 196 118 8;
+    --c-vital-move: 124 88 224;
+
+    --c-status-normal: 6 138 96;
+    --c-status-warning: 181 111 9;
+    --c-status-critical: 202 46 46;
+
+    --shadow-card: 0 1px 2px 0 rgb(120 113 96 / 0.06),
+      0 12px 28px -18px rgb(120 113 96 / 0.35);
+
+    --page-glow-1: rgb(193 91 58 / 0.07);
+    --page-glow-2: rgb(139 118 224 / 0.06);
+    --page-glow-3: rgb(8 132 158 / 0.05);
+
+    --grid-line: rgb(28 27 24 / 0.06);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-ink-950 text-slate-200 font-sans antialiased;
+    background-image:
+      radial-gradient(900px 500px at 12% -8%, var(--page-glow-1), transparent 60%),
+      radial-gradient(800px 460px at 92% 4%, var(--page-glow-2), transparent 60%),
+      radial-gradient(700px 500px at 50% 108%, var(--page-glow-3), transparent 60%);
+    background-attachment: fixed;
+    transition: background-color 0.35s ease, color 0.35s ease;
+  }
+
+  /* Headings take the serif automatically. Set the family directly rather than
+     @apply-ing font-display: the selector list includes .font-display itself,
+     which Tailwind rejects as a circular dependency. */
+  h1,
+  h2,
+  h3 {
+    font-family: theme('fontFamily.display');
+    letter-spacing: -0.012em;
+  }
+
+  ::selection {
+    background: rgb(var(--c-accent) / 0.28);
+    @apply text-slate-200;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-600 rounded-full border-4 border-solid border-transparent;
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+  .card {
+    @apply relative rounded-2xl border border-white/[0.07] bg-white/[0.035]
+           backdrop-blur-xl shadow-card;
+  }
+
+  /* The light theme needs opaque cards: a 3.5% black wash over cream reads as
+     a smudge rather than as a raised surface. */
+  :root[data-theme='light'] .card {
+    @apply border-white/[0.09] bg-ink-900;
+    backdrop-filter: none;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:border-white/[0.14]
+           hover:bg-white/[0.055] hover:-translate-y-0.5;
+  }
+
+  :root[data-theme='light'] .card-hover:hover {
+    @apply border-white/[0.16] bg-ink-900;
+    box-shadow: 0 2px 4px 0 rgb(120 113 96 / 0.08),
+      0 18px 36px -20px rgb(120 113 96 / 0.45);
+  }
+
+  .label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2
+           text-sm font-semibold transition-all duration-200
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply btn border border-white/10 bg-white/[0.04] text-slate-300
+           hover:bg-white/[0.09] hover:text-slate-200;
+  }
+
+  .btn-primary {
+    @apply btn text-white;
+    background-image: linear-gradient(
+      to right,
+      rgb(var(--c-accent)),
+      rgb(var(--c-accent) / 0.82)
+    );
+    color: rgb(var(--c-ink-950));
+    box-shadow: 0 10px 24px -14px rgb(var(--c-accent) / 0.9);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+
+  .input {
+    @apply rounded-xl border border-white/10 bg-ink-900 px-3 py-2 text-sm
+           text-slate-200 outline-none transition
+           focus:border-accent/60 focus:ring-2 focus:ring-accent/20;
+  }
+
+  .readout {
+    @apply font-mono tabular-nums;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer
+           bg-gradient-to-r from-transparent via-white/[0.07] to-transparent;
+  }
+}
+
+/* Recharts overrides */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+.recharts-cartesian-axis-tick text {
+  fill: rgb(var(--c-t500));
+  font-size: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
