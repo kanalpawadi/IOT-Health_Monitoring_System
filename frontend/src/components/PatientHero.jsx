@@ -69,7 +69,7 @@ export default function PatientHero({ status }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`card relative overflow-hidden p-6 sm:p-7 ${critical ? 'ring-1 ' + sev.ring : ''}`}
+      className={`card relative overflow-hidden p-4 xs:p-5 sm:p-7 ${critical ? 'ring-1 ' + sev.ring : ''}`}
     >
       {/* animated ECG backdrop */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.22]">
@@ -80,10 +80,10 @@ export default function PatientHero({ status }) {
         style={{ background: sevHex }}
       />
 
-      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
+      <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center">
         {/* status disc */}
-        <div className="flex items-center gap-5">
-          <div className="relative grid h-[76px] w-[76px] shrink-0 place-items-center">
+        <div className="flex items-center gap-3.5 sm:gap-5">
+          <div className="relative grid h-14 w-14 shrink-0 place-items-center xs:h-16 xs:w-16 sm:h-[76px] sm:w-[76px]">
             <span
               className={`absolute inset-0 rounded-full ${sev.bg} ring-1 ${sev.ring}`}
             />
@@ -93,17 +93,17 @@ export default function PatientHero({ status }) {
                 style={{ background: sevHex, opacity: 0.2 }}
               />
             )}
-            <Icon className={`relative h-8 w-8 ${sev.text}`} strokeWidth={2.2} />
+            <Icon className={`relative h-6 w-6 sm:h-8 sm:w-8 ${sev.text}`} strokeWidth={2.2} />
           </div>
 
           <div className="min-w-0">
             <div className="label">Current status</div>
             <h2
-              className={`mt-0.5 text-3xl font-extrabold tracking-tight sm:text-[34px] ${sev.text}`}
+              className={`mt-0.5 text-2xl font-extrabold tracking-tight xs:text-3xl sm:text-[34px] ${sev.text}`}
             >
               {sev.label}
             </h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-0.5 text-xs text-slate-500">
               {status?.demo ? (
                 <span className="font-semibold text-status-warning">
                   Simulated · no device connected
@@ -123,7 +123,7 @@ export default function PatientHero({ status }) {
         </div>
 
         {/* quick stats */}
-        <div className="grid flex-1 grid-cols-2 gap-x-5 gap-y-4 border-white/[0.07] sm:grid-cols-3 lg:border-l lg:pl-7">
+        <div className="grid flex-1 grid-cols-2 gap-x-4 gap-y-3 border-white/[0.07] xs:gap-x-5 xs:gap-y-4 sm:grid-cols-3 lg:border-l lg:pl-7">
           <Stat
             label="Patient"
             value={status?.patient_name || 'Unnamed'}
@@ -131,7 +131,7 @@ export default function PatientHero({ status }) {
           />
           <Stat
             label="Window"
-            value={`${status?.window_minutes ?? 15} minutes`}
+            value={`${status?.window_minutes ?? 15} min`}
             hint={`${status?.sample_count ?? 0} readings`}
           />
           <Stat
@@ -144,7 +144,7 @@ export default function PatientHero({ status }) {
             }
             hint={
               fall?.monitored === false
-                ? 'Fall detection unavailable'
+                ? 'Fall unmonitored'
                 : fall?.detected
                   ? 'Fall detected'
                   : 'No fall detected'
@@ -178,7 +178,7 @@ export default function PatientHero({ status }) {
         </div>
 
         {hr ? (
-          <div className="flex items-center gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3">
+          <div className="self-start sm:self-auto flex items-center gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-2.5 sm:px-4 sm:py-3">
             <motion.span
               animate={{ scale: [1, 1.22, 1] }}
               transition={{
@@ -187,13 +187,13 @@ export default function PatientHero({ status }) {
                 ease: 'easeInOut',
               }}
             >
-              <HeartPulse className="h-6 w-6" style={{ color: c.hr }} />
+              <HeartPulse className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: c.hr }} />
             </motion.span>
             <div className="leading-none">
-              <div className="readout text-2xl font-extrabold text-slate-200">
+              <div className="readout text-xl sm:text-2xl font-extrabold text-slate-200">
                 {Math.round(hr)}
               </div>
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <div className="text-[9.5px] sm:text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 BPM
               </div>
             </div>

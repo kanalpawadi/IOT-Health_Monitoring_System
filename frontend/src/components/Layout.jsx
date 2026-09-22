@@ -158,7 +158,7 @@ function TopBar({ onMenu }) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-ink-950/80 backdrop-blur-xl">
-      <div className="flex items-center gap-3 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-[1600px] items-center gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
         <button
           onClick={onMenu}
           className="btn-ghost !px-2 lg:hidden"
@@ -171,7 +171,7 @@ function TopBar({ onMenu }) {
           <h1 className="truncate text-sm font-bold text-white sm:text-base">
             {status?.patient_name || 'Patient monitor'}
           </h1>
-          <p className="truncate text-[11px] text-slate-500">
+          <p className="truncate text-[10.5px] text-slate-500 sm:text-[11px]">
             {status?.device_id || '—'} · {status?.sample_count ?? 0} readings in the
             last {status?.window_minutes ?? 15} min
           </p>
@@ -179,7 +179,7 @@ function TopBar({ onMenu }) {
 
         {status && (
           <div
-            className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold sm:flex ${sev.bg} ${sev.border} ${sev.text}`}
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs ${sev.bg} ${sev.border} ${sev.text}`}
           >
             <span className={`h-2 w-2 rounded-full ${sev.dot}`}>
               {status.status !== 'normal' && (
@@ -188,7 +188,7 @@ function TopBar({ onMenu }) {
                 />
               )}
             </span>
-            {sev.label}
+            <span className="hidden xs:inline">{sev.label}</span>
           </div>
         )}
 
@@ -259,13 +259,15 @@ export default function Layout({ children }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onMenu={() => setOpen(true)} />
         <DemoBanner />
-        <main className="flex-1 px-4 py-5 sm:px-6 sm:py-7">{children}</main>
+        <main className="mx-auto w-full max-w-[1600px] flex-1 px-3 py-4 sm:px-6 sm:py-7">{children}</main>
         <footer className="border-t border-white/[0.06] px-4 py-4 text-center text-[11px] leading-relaxed text-slate-600 sm:px-6">
-          Monitoring assistance only — not a medical diagnosis. Alerts come from a
-          deterministic rule engine; the AI layer explains them in plain language.
-          <br />
-          D.K.T.E. Society&apos;s Textile &amp; Engineering Institute, Ichalkaranji ·
-          B.Tech AI &amp; Data Science
+          <div className="mx-auto max-w-[1600px]">
+            Monitoring assistance only — not a medical diagnosis. Alerts come from a
+            deterministic rule engine; the AI layer explains them in plain language.
+            <br className="hidden sm:inline" />
+            D.K.T.E. Society&apos;s Textile &amp; Engineering Institute, Ichalkaranji ·
+            B.Tech AI &amp; Data Science
+          </div>
         </footer>
       </div>
     </div>

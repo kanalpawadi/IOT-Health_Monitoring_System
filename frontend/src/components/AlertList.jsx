@@ -72,7 +72,7 @@ function AlertRow({ alert, onAcknowledge, index }) {
       {!alert.acknowledged && onAcknowledge && (
         <button
           onClick={() => onAcknowledge(alert.id)}
-          className="btn-ghost !px-2 !py-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+          className="btn-ghost !px-2 !py-1.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100"
           title="Acknowledge"
           aria-label={`Acknowledge ${alert.rule}`}
         >

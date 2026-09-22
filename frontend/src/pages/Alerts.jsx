@@ -51,7 +51,7 @@ export default function Alerts() {
           </button>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="mt-4 grid grid-cols-1 xs:grid-cols-3 gap-2.5 sm:gap-3">
           {[
             ['critical', counts.critical],
             ['warning', counts.warning],

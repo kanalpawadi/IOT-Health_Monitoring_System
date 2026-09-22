@@ -23,6 +23,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
+      screens: {
+        xs: '380px',
+        '3xl': '1920px',
+      },
       fontFamily: {
         // Claude-like pairing: a text serif for display, a warm grotesque for UI.
         display: ['"Source Serif 4"', 'Georgia', 'ui-serif', 'serif'],

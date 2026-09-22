@@ -64,7 +64,7 @@ function VitalCard({ vital, series, index = 0 }) {
           initial={{ opacity: 0.4, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="readout text-[42px] font-extrabold leading-none tracking-tight"
+          className="readout text-3xl xs:text-4xl sm:text-[42px] font-extrabold leading-none tracking-tight"
           style={{ color: hasValue ? color : themeColors.muted }}
         >
           {fmtValue(vital.value, vital.metric)}

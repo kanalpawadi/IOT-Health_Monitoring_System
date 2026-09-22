@@ -177,26 +177,26 @@ export default function History() {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
-            className="mt-3 flex flex-wrap items-end gap-3 border-t border-white/[0.06] pt-3"
+            className="mt-3 flex flex-col sm:flex-row sm:items-end gap-3 border-t border-white/[0.06] pt-3"
           >
-            <label className="flex flex-col gap-1">
+            <label className="flex flex-col gap-1 w-full sm:w-auto">
               <span className="label">From</span>
               <input
                 type="datetime-local"
                 value={start}
                 max={end}
                 onChange={(e) => setStart(e.target.value)}
-                className="input"
+                className="input w-full"
               />
             </label>
-            <label className="flex flex-col gap-1">
+            <label className="flex flex-col gap-1 w-full sm:w-auto">
               <span className="label">To</span>
               <input
                 type="datetime-local"
                 value={end}
                 min={start}
                 onChange={(e) => setEnd(e.target.value)}
-                className="input"
+                className="input w-full"
               />
             </label>
           </motion.div>
@@ -240,15 +240,15 @@ export default function History() {
             <h3 className="mb-3 text-sm font-bold text-white">
               Alerts raised in this period
             </h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 xs:grid-cols-3 gap-2.5 sm:gap-3">
               {['critical', 'warning', 'normal'].map((s) => {
                 const sev = severity(s)
                 return (
                   <div
                     key={s}
-                    className={`rounded-xl border p-4 ${sev.border} ${sev.bg}`}
+                    className={`rounded-xl border p-3.5 sm:p-4 ${sev.border} ${sev.bg}`}
                   >
-                    <div className={`readout text-3xl font-extrabold ${sev.text}`}>
+                    <div className={`readout text-2xl sm:text-3xl font-extrabold ${sev.text}`}>
                       {counts[s] ?? 0}
                     </div>
                     <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">

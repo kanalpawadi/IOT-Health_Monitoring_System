@@ -112,25 +112,25 @@ export default function Reports() {
           </div>
 
           {custom && (
-            <div className="flex flex-wrap gap-3">
-              <label className="flex flex-col gap-1">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <label className="flex flex-col gap-1 w-full sm:w-auto">
                 <span className="label">From</span>
                 <input
                   type="datetime-local"
                   value={start}
                   max={end}
                   onChange={(e) => setStart(e.target.value)}
-                  className="input"
+                  className="input w-full"
                 />
               </label>
-              <label className="flex flex-col gap-1">
+              <label className="flex flex-col gap-1 w-full sm:w-auto">
                 <span className="label">To</span>
                 <input
                   type="datetime-local"
                   value={end}
                   min={start}
                   onChange={(e) => setEnd(e.target.value)}
-                  className="input"
+                  className="input w-full"
                 />
               </label>
             </div>
