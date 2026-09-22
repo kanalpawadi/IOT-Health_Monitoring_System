@@ -11,21 +11,49 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { params, signal, ...init } = {}) {
+// A dead backend behind a dev proxy does not refuse the connection -- it just
+// never answers. Without a deadline the dashboard would sit on a spinner
+// forever instead of falling back to demo data, so every request gets one.
+const TIMEOUT_MS = 6000
+
+async function request(path, { params, signal, timeout = TIMEOUT_MS, ...init } = {}) {
   const url = new URL(`${BASE}${path}`, window.location.origin)
   Object.entries(params || {}).forEach(([k, v]) => {
     if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v)
   })
 
+  // One controller for both deadlines: ours and the caller's.
+  const controller = new AbortController()
+  let timedOut = false
+  const timer = setTimeout(() => {
+    timedOut = true
+    controller.abort()
+  }, timeout)
+  const relayAbort = () => controller.abort()
+  if (signal) {
+    if (signal.aborted) relayAbort()
+    else signal.addEventListener('abort', relayAbort, { once: true })
+  }
+
   let res
   try {
-    res = await fetch(url, { signal, ...init })
+    res = await fetch(url, { ...init, signal: controller.signal })
   } catch (err) {
+    if (timedOut) {
+      throw new ApiError(
+        `The API did not respond within ${Math.round(timeout / 1000)} s.`,
+        0,
+      )
+    }
+    // A caller-initiated abort is not an error worth reporting.
     if (err.name === 'AbortError') throw err
     throw new ApiError(
       'Cannot reach the API. Is the FastAPI backend running on port 8000?',
       0,
     )
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', relayAbort)
   }
 
   if (!res.ok) {

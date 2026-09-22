@@ -5,6 +5,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import LiveChart from '../components/LiveChart'
 import { useMonitor } from '../context/MonitorContext'
 import { api } from '../lib/api'
+import { demoHistory } from '../lib/demoData'
 import { useThemeColors } from '../context/ThemeContext'
 import { fmtDateTime, severity, VITALS } from '../lib/format'
 
@@ -70,7 +71,7 @@ function StatTile({ metric, stat }) {
 }
 
 export default function History() {
-  const { deviceId } = useMonitor()
+  const { deviceId, demoMode } = useMonitor()
   const [preset, setPreset] = useState(1440)
   const [custom, setCustom] = useState(false)
   const [start, setStart] = useState(() =>
@@ -91,15 +92,32 @@ export default function History() {
     async (signal) => {
       setLoading(true)
       setError(null)
+
+      // Demo mode means there is no stored history to draw at all, so there is
+      // nothing to fetch -- generate the range instead.
+      if (demoMode) {
+        setData(demoHistory(deviceId, range.start, range.end, 400))
+        setLoading(false)
+        return
+      }
+
       try {
         setData(await api.history(deviceId, range.start, range.end, 400, { signal }))
       } catch (err) {
-        if (err.name !== 'AbortError') setError(err.message)
+        if (err.name === 'AbortError') return
+        // Only an unreachable API falls back to simulated trends -- anything
+        // the server actually answered (a bad range, a missing device) is a
+        // real complaint and belongs on screen.
+        if (err.status === 0) {
+          setData(demoHistory(deviceId, range.start, range.end, 400))
+        } else {
+          setError(err.message)
+        }
       } finally {
         setLoading(false)
       }
     },
-    [deviceId, range.start, range.end],
+    [deviceId, demoMode, range.start, range.end],
   )
 
   useEffect(() => {
@@ -188,6 +206,11 @@ export default function History() {
           {fmtDateTime(range.start)} → {fmtDateTime(range.end)} ·{' '}
           {data?.points?.length ?? 0} plotted points from{' '}
           {data?.stats?.total_readings ?? 0} readings
+          {data?.demo && (
+            <span className="ml-1 font-semibold text-status-warning">
+              · simulated
+            </span>
+          )}
         </p>
       </section>
 

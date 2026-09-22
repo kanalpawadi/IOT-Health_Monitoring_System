@@ -159,6 +159,21 @@ python tools/simulate.py --scenario tachy   # heart rate climbs
 python tools/simulate.py --scenario fall    # injects a fall signature
 ```
 
+#### Demo mode (no backend, no database, no board)
+
+If the dashboard cannot reach the API at all, or the API answers but the device
+has no readings, the frontend falls back to vitals it generates in the browser
+(`frontend/src/lib/demoData.js`): a live-scrolling chart, per-vital verdicts, an
+alert history and a templated summary. A warning banner sits on every page for
+as long as this lasts, because a monitoring dashboard must never let simulated
+numbers pass for a patient's.
+
+Nothing has to be switched on or off. The moment a real reading arrives -- from
+the ESP8266, from `simulate.py`, or over the Supabase realtime channel -- the
+simulated data is dropped and the dashboard is live. Demo readings are never
+written to the database and never merged with real ones; PDF reports are
+rendered server-side and so stay unavailable while the backend is unreachable.
+
 ---
 
 ## Choosing a Groq model

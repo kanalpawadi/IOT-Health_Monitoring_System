@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Download, FileText, Loader2, Sparkles } from 'lucide-react'
+import { Download, FileText, FlaskConical, Loader2, Sparkles } from 'lucide-react'
 import { useMonitor } from '../context/MonitorContext'
 import { api } from '../lib/api'
 import { fmtDateTime } from '../lib/format'
@@ -16,7 +16,7 @@ function toLocalInput(date) {
 }
 
 export default function Reports() {
-  const { deviceId, status } = useMonitor()
+  const { deviceId, status, demoMode, demoReason } = useMonitor()
   const [preset, setPreset] = useState(1440)
   const [custom, setCustom] = useState(false)
   const [start, setStart] = useState(() =>
@@ -166,6 +166,15 @@ export default function Reports() {
             </div>
           </div>
 
+          {demoMode && (
+            <p className="flex items-start gap-2 rounded-lg border border-status-warning/25 bg-status-warning/[0.07] px-3 py-2 text-[12px] leading-relaxed text-status-warning">
+              <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              {demoReason === 'offline'
+                ? 'The PDF is rendered by the backend, which is unreachable right now. The simulated vitals on the other pages cannot be exported — start the API or connect the device first.'
+                : 'This device has no stored readings yet, so the report would come out empty. Connect the ESP8266 and try again.'}
+            </p>
+          )}
+
           {error && (
             <p className="rounded-lg border border-status-critical/25 bg-status-critical/[0.07] px-3 py-2 text-[12px] text-status-critical">
               {error}
@@ -174,7 +183,7 @@ export default function Reports() {
 
           <button
             onClick={download}
-            disabled={busy || range.start >= range.end}
+            disabled={busy || range.start >= range.end || demoReason === 'offline'}
             className="btn-primary w-full !py-3"
           >
             {busy ? (

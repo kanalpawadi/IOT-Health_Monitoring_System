@@ -104,7 +104,11 @@ export default function PatientHero({ status }) {
               {sev.label}
             </h2>
             <p className="mt-1 text-xs text-slate-500">
-              {status?.online ? (
+              {status?.demo ? (
+                <span className="font-semibold text-status-warning">
+                  Simulated · no device connected
+                </span>
+              ) : status?.online ? (
                 <>
                   Live · last reading {fmtAgo(status?.window_end)}
                 </>

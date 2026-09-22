@@ -54,15 +54,16 @@ async def close_pool() -> None:
         _pool = None
 
 
-def get_pool() -> asyncpg.Pool:
+async def get_pool() -> asyncpg.Pool:
+    global _pool
     if _pool is None:
-        raise RuntimeError("Database pool is not initialised")
+        await init_pool()
     return _pool
 
 
 @asynccontextmanager
 async def connection():
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         yield conn
 

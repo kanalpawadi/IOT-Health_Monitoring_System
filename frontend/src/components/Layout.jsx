@@ -5,6 +5,7 @@ import {
   Activity,
   BellRing,
   FileText,
+  FlaskConical,
   LayoutDashboard,
   Menu,
   Radio,
@@ -15,6 +16,7 @@ import {
   WifiOff,
 } from 'lucide-react'
 import { useMonitor } from '../context/MonitorContext'
+import DemoBanner from './DemoBanner'
 import ThemeToggle from './ThemeToggle'
 import { fmtAgo, severity } from '../lib/format'
 
@@ -94,23 +96,41 @@ function NavItems({ onNavigate }) {
 }
 
 function ConnectionPill() {
-  const { status, realtimeActive, health } = useMonitor()
-  const online = status?.online
+  const { status, realtimeActive, health, demoMode } = useMonitor()
+  // In demo mode the assessment is generated locally, so its `online` flag
+  // says nothing about the device. Report the simulation instead.
+  const online = !demoMode && status?.online
 
   return (
     <div className="mt-auto space-y-2 pt-6">
       <div
         className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-xs font-semibold ${
-          online
-            ? 'border-status-normal/25 bg-status-normal/10 text-status-normal'
-            : 'border-slate-600/40 bg-slate-600/10 text-slate-400'
+          demoMode
+            ? 'border-status-warning/25 bg-status-warning/10 text-status-warning'
+            : online
+              ? 'border-status-normal/25 bg-status-normal/10 text-status-normal'
+              : 'border-slate-600/40 bg-slate-600/10 text-slate-400'
         }`}
       >
-        {online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+        {demoMode ? (
+          <FlaskConical className="h-4 w-4" />
+        ) : online ? (
+          <Wifi className="h-4 w-4" />
+        ) : (
+          <WifiOff className="h-4 w-4" />
+        )}
         <div className="flex-1 leading-tight">
-          <div>{online ? 'Device online' : 'Device offline'}</div>
+          <div>
+            {demoMode
+              ? 'Simulated data'
+              : online
+                ? 'Device online'
+                : 'Device offline'}
+          </div>
           <div className="text-[10px] font-medium opacity-70">
-            Last reading {fmtAgo(status?.window_end)}
+            {demoMode
+              ? 'Waiting for the sensor'
+              : `Last reading ${fmtAgo(status?.window_end)}`}
           </div>
         </div>
       </div>
@@ -119,7 +139,11 @@ function ConnectionPill() {
         <Radio
           className={`h-3 w-3 ${realtimeActive ? 'text-accent' : 'text-slate-600'}`}
         />
-        {realtimeActive ? 'Realtime stream active' : 'Polling every 5s'}
+        {demoMode
+          ? 'Demo feed · retrying live every 5s'
+          : realtimeActive
+            ? 'Realtime stream active'
+            : 'Polling every 5s'}
         {health?.generative_ai === 'groq' && (
           <span className="ml-auto text-accent/80">Groq</span>
         )}
@@ -234,6 +258,7 @@ export default function Layout({ children }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onMenu={() => setOpen(true)} />
+        <DemoBanner />
         <main className="flex-1 px-4 py-5 sm:px-6 sm:py-7">{children}</main>
         <footer className="border-t border-white/[0.06] px-4 py-4 text-center text-[11px] leading-relaxed text-slate-600 sm:px-6">
           Monitoring assistance only — not a medical diagnosis. Alerts come from a
