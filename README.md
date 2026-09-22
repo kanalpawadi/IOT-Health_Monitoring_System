@@ -3,7 +3,7 @@
 Website and Generative AI layer for the B.Tech (AI & Data Science) major project
 at D.K.T.E. Society's Textile & Engineering Institute, Ichalkaranji.
 
-ESP8266 sensors stream vitals into Supabase. A FastAPI backend applies a
+ESP32 sensors stream vitals into Supabase. A FastAPI backend applies a
 deterministic rule and trend engine, detects falls, and asks a Generative AI
 model to explain the result in plain language. A React dashboard shows it all
 live.
@@ -266,5 +266,6 @@ Two documented deviations from the synopsis text:
   on `health_data`, since the board may currently write with that key.
 - `/api/ingest` is open unless you set `INGEST_KEY`. Acceptable on a lab
   network; set it before exposing the backend anywhere else.
-#   I O T - H e a l t h _ M o n i t o r i n g _ S y s t e m  
+#   I O T - H e a l t h _ M o n i t o r i n g _ S y s t e m 
+ 
  
