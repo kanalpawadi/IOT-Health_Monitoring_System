@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
+from html import escape
 from typing import Any, Sequence
 
 import matplotlib
@@ -62,7 +63,19 @@ def _styles():
 
 def _chart(series: Sequence[dict[str, Any]], key: str, title: str,
            unit: str, color: str, band: tuple[float, float]) -> io.BytesIO | None:
-    points = [(r["recorded_at"], r[key]) for r in series if r.get(key) is not None]
+    points = []
+    for r in series:
+        if r.get(key) is None:
+            continue
+        rec = r.get("recorded_at")
+        if isinstance(rec, str):
+            try:
+                rec = datetime.fromisoformat(rec.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+        if isinstance(rec, datetime):
+            points.append((rec, float(r[key])))
+
     if len(points) < 2:
         return None
 
@@ -144,16 +157,32 @@ def _alerts_table(alerts: Sequence[dict[str, Any]], styles) -> Table:
     ]
 
     for i, a in enumerate(alerts, start=1):
-        ts = datetime.fromisoformat(a["created_at"])
+        ca = a.get("created_at")
+        if isinstance(ca, datetime):
+            ts = ca
+        elif isinstance(ca, str):
+            try:
+                ts = datetime.fromisoformat(ca.replace("Z", "+00:00"))
+            except ValueError:
+                ts = datetime.now()
+        else:
+            ts = datetime.now()
+
+        sev = str(a.get("severity", "warning"))
+        metric = str(a.get("metric", ""))
+        val = a.get("value")
+        val_str = "-" if val is None else f"{float(val):g}"
+        msg = escape(str(a.get("message", "")))
+
         rows.append([
             ts.strftime("%d %b %H:%M:%S"),
-            a["severity"].upper(),
-            a["metric"].replace("_", " "),
-            "-" if a["value"] is None else f"{a['value']:g}",
-            Paragraph(a["message"], styles["Small"]),
+            sev.upper(),
+            metric.replace("_", " "),
+            val_str,
+            Paragraph(msg, styles["Small"]),
         ])
         style_cmds.append(
-            ("TEXTCOLOR", (1, i), (1, i), SEVERITY_COLOR.get(a["severity"], INK))
+            ("TEXTCOLOR", (1, i), (1, i), SEVERITY_COLOR.get(sev, INK))
         )
         style_cmds.append(("FONTNAME", (1, i), (1, i), "Helvetica-Bold"))
 
@@ -215,12 +244,13 @@ def build_report(
     if ai_summary:
         story.append(Paragraph("AI monitoring summary", ss["H2"]))
         if ai_summary.get("headline"):
-            story.append(Paragraph(f"<b>{ai_summary['headline']}</b>", ss["Body"]))
+            story.append(Paragraph(f"<b>{escape(str(ai_summary['headline']))}</b>", ss["Body"]))
             story.append(Spacer(1, 4))
-        story.append(Paragraph(ai_summary.get("summary", ""), ss["Body"]))
+        if ai_summary.get("summary"):
+            story.append(Paragraph(escape(str(ai_summary["summary"])), ss["Body"]))
         story.append(Spacer(1, 5))
         story.append(Paragraph(
-            f"{DISCLAIMER} Model: {ai_summary.get('model', 'n/a')}.", ss["Small"]
+            f"{DISCLAIMER} Model: {escape(str(ai_summary.get('model', 'n/a')))}.", ss["Small"]
         ))
 
     # ---- statistics ------------------------------------------------------ #
