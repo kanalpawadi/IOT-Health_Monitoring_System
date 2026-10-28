@@ -27,23 +27,27 @@ def _ssl_context() -> ssl.SSLContext:
     return ctx
 
 
-async def init_pool() -> asyncpg.Pool:
+async def init_pool() -> asyncpg.Pool | None:
     global _pool
     if _pool is None:
         if not settings.database_url:
-            raise RuntimeError(
-                "DATABASE_URL is not set. Copy backend/.env.example to "
-                "backend/.env and fill in your Supabase connection string."
+            print("[WARN] DATABASE_URL is not set in backend/.env")
+            return None
+        try:
+            _pool = await asyncpg.create_pool(
+                dsn=settings.database_url,
+                min_size=1,
+                max_size=8,
+                ssl=_ssl_context(),
+                command_timeout=30,
+                # pgbouncer in transaction mode cannot serve prepared statements
+                statement_cache_size=0,
             )
-        _pool = await asyncpg.create_pool(
-            dsn=settings.database_url,
-            min_size=1,
-            max_size=8,
-            ssl=_ssl_context(),
-            command_timeout=30,
-            # pgbouncer in transaction mode cannot serve prepared statements
-            statement_cache_size=0,
-        )
+            print("[INFO] Connected to Supabase PostgreSQL successfully.")
+        except Exception as e:
+            print(f"[ERROR] Failed to connect to database: {e}")
+            print("[WARN] Backend running in offline/demo mode until database connection is fixed.")
+            _pool = None
     return _pool
 
 
@@ -58,6 +62,9 @@ async def get_pool() -> asyncpg.Pool:
     global _pool
     if _pool is None:
         await init_pool()
+    if _pool is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail="Database unavailable. Check DATABASE_URL in backend/.env")
     return _pool
 
 

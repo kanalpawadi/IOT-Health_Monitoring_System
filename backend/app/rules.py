@@ -101,9 +101,9 @@ BANDS: dict[str, Band] = {
         metric="heart_rate",
         label="Heart rate",
         unit="BPM",
-        warn_low=60,
+        warn_low=90,
         warn_high=100,
-        crit_low=50,
+        crit_low=60,
         crit_high=120,
         plaus_low=35,
         plaus_high=200,
@@ -130,17 +130,13 @@ BANDS: dict[str, Band] = {
         metric="temperature_c",
         label="Body temperature",
         unit="°C",
-        warn_low=36.1,
-        warn_high=37.5,
-        crit_low=35.0,
-        crit_high=38.5,
-        plaus_low=32.0,
+        warn_low=30.0,
+        warn_high=40.0,
+        crit_low=28.0,
+        crit_high=42.0,
+        plaus_low=20.0,
         plaus_high=45.0,
-        fault_hint=(
-            "A reading near room temperature means the DS18B20 is measuring "
-            "air, not the patient. Tape the probe against the skin "
-            "(armpit or forehead) and allow ~30 s to settle."
-        ),
+        fault_hint="Ensure the DS18B20 temperature probe is attached to the patient.",
         trend_epsilon=0.3,
     ),
 }
@@ -259,6 +255,7 @@ def assess_vital(
     metric: str,
     history: Sequence[tuple[datetime, float]],
     persistence_samples: int,
+    latest_present: bool = True,
 ) -> VitalAssessment:
     """Evaluate one vital against its band, with persistence and trend.
 
@@ -275,15 +272,39 @@ def assess_vital(
             label=band.label,
             unit=band.unit,
             value=None,
-            severity=Severity.NORMAL,
+            severity=Severity.WARNING,
             rule=f"{metric}_no_data",
-            message=f"{band.label} has not been measured recently.",
+            message=(
+                f"{band.label} is not currently detected (no valid readings in window). "
+                f"{band.fault_hint}"
+            ),
             trend=Trend("unknown", 0.0, 0.0, 0),
             normal_range=band.describe_range(),
+            sensor_fault=True,
+            discarded=0,
         )
 
     plausible = [(t, v) for t, v in history if band.is_plausible(v)]
     discarded = len(history) - len(plausible)
+
+    if not latest_present:
+        return VitalAssessment(
+            metric=metric,
+            label=band.label,
+            unit=band.unit,
+            value=None,
+            severity=Severity.WARNING,
+            rule=f"{metric}_no_contact",
+            message=(
+                f"{band.label} is currently not detected (reading NULL / 0). "
+                f"{band.fault_hint}"
+            ),
+            trend=compute_trend(plausible, band.trend_epsilon) if plausible else Trend("unknown", 0.0, 0.0, 0),
+            normal_range=band.describe_range(),
+            sensor_fault=True,
+            discarded=discarded,
+        )
+
 
     if not plausible:
         # Every reading in the window was outside the physically possible
@@ -402,9 +423,14 @@ def assess_patient(
             if metric == "spo2" and row.get("spo2_valid") is False:
                 continue
             history.append((row["recorded_at"], float(value)))
-        vitals.append(assess_vital(metric, history, persistence_samples))
 
-    severities = [v.severity for v in vitals]
+        latest_present = bool(rows and rows[-1].get(metric) is not None)
+        vitals.append(assess_vital(metric, history, persistence_samples, latest_present=latest_present))
+
+
+    severities = [v.severity for v in vitals if not (v.sensor_fault and v.metric == "spo2")]
+    if not severities:
+        severities = [v.severity for v in vitals]
     if fall_event and fall_event.get("detected"):
         severities.append(Severity.CRITICAL)
 

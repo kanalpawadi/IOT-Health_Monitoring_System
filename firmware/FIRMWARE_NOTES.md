@@ -116,7 +116,7 @@ samples and will be missed.
 For fall detection to work, the accelerometer needs to be sampled at roughly
 **10–20 Hz**. You do not need to push every sample to the cloud — sample fast
 locally, and either upload at a higher rate during motion or run the threshold
-check on the ESP8266 and upload a flag when it trips. The thresholds used by
+check on the ESP32 and upload a flag when it trips. The thresholds used by
 the backend are in `backend/app/fall.py` (`FREE_FALL_G`, `IMPACT_G`,
 `IMPACT_WINDOW_S`) if you want to mirror them on-device.
 
@@ -126,14 +126,14 @@ the backend are in `backend/app/fall.py` (`FREE_FALL_G`, `IMPACT_G`,
 
 Your board writes to Supabase directly, which is fine and matches what is
 running today. If you would rather match the block diagram's
-`ESP8266 → backend → database` arrow, POST to `/api/ingest` instead:
+`ESP32 → backend → database` arrow, POST to `/api/ingest` instead:
 
 ```
-POST http://<your-pc-ip>:8000/api/ingest
+POST http://<your-pc-ip>:8001/api/ingest
 Content-Type: application/json
 X-Device-Key: <INGEST_KEY from backend/.env, if you set one>
 
-{"device_id":"esp8266-01","heart_rate":78,"spo2":97,"temperature_c":36.8,
+{"device_id":"esp32-01","heart_rate":78,"spo2":97,"temperature_c":36.8,
  "movement":false,"accel_x":0.02,"accel_y":-0.01,"accel_z":0.99}
 ```
 

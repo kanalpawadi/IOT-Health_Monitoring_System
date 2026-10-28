@@ -18,7 +18,10 @@ from .routers import alerts, ingest, insights, monitoring, reports
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await db.init_pool()
+    try:
+        await db.init_pool()
+    except Exception as e:
+        print(f"[WARN] Database initialization deferred: {e}")
     try:
         yield
     finally:
@@ -29,7 +32,7 @@ app = FastAPI(
     title="AI-Enabled IoT Remote Patient Health Monitoring",
     description=(
         "Rule/trend engine, fall detection and a Generative AI explanation "
-        "layer over ESP8266 vitals stored in Supabase. Monitoring assistance "
+        "layer over ESP32 vitals stored in Supabase. Monitoring assistance "
         "only -- not a medical diagnostic device."
     ),
     version="1.0.0",

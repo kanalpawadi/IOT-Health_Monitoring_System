@@ -6,6 +6,7 @@ import ErrorBoundary from '../components/ErrorBoundary'
 import AlertList from '../components/AlertList'
 import LiveChart from '../components/LiveChart'
 import PatientHero from '../components/PatientHero'
+import RawReadingsTable from '../components/RawReadingsTable'
 import VitalCard from '../components/VitalCard'
 import { useMonitor } from '../context/MonitorContext'
 
@@ -109,6 +110,11 @@ export default function Dashboard() {
           </motion.section>
         </div>
       </div>
+
+      {/* Raw Supabase Live Telemetry Feed */}
+      <ErrorBoundary label="The raw telemetry feed">
+        <RawReadingsTable />
+      </ErrorBoundary>
     </div>
   )
 }

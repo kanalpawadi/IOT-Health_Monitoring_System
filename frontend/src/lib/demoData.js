@@ -3,7 +3,7 @@
  *
  * The dashboard is unreadable with an empty database -- flat charts, dashes
  * everywhere, no alerts -- which makes it impossible to show the system to
- * anyone before the ESP8266 is wired up. So when the API is unreachable, or
+ * anyone before the ESP32 is wired up. So when the API is unreachable, or
  * reachable but has no readings for the device, the UI falls back to the data
  * generated here and says so in a banner.
  *
@@ -379,7 +379,7 @@ export function demoAiSummary(status) {
     problems.length === 0
       ? 'Every vital sits inside its expected band, so the rule engine would report Normal.'
       : `${problems.length} vital${problems.length > 1 ? 's are' : ' is'} outside the expected band and would be flagged.`,
-    'Connect the ESP8266 (or run backend/tools/simulate.py) and this card switches to the real generated summary automatically.',
+    'Connect the ESP32 (or run backend/tools/simulate.py) and this card switches to the real generated summary automatically.',
   ].join(' ')
 
   return {

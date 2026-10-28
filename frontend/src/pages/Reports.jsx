@@ -171,7 +171,7 @@ export default function Reports() {
               <FlaskConical className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               {demoReason === 'offline'
                 ? 'The PDF is rendered by the backend, which is unreachable right now. The simulated vitals on the other pages cannot be exported — start the API or connect the device first.'
-                : 'This device has no stored readings yet, so the report would come out empty. Connect the ESP8266 and try again.'}
+                : 'This device has no stored readings yet, so the report would come out empty. Connect the ESP32 and try again.'}
             </p>
           )}
 

@@ -1,8 +1,8 @@
-"""Optional ingest endpoint for the ESP8266.
+"""Optional ingest endpoint for the ESP32.
 
 Your board currently writes to Supabase directly, which is fine. This endpoint
 exists so the firmware can instead POST to the backend (matching the block
-diagram's "ESP8266 -> backend -> database" arrow) and get rule evaluation on
+diagram's "ESP32 -> backend -> database" arrow) and get rule evaluation on
 the same round trip -- handy if you later want the board to buzz on a critical
 reading without waiting for the dashboard to poll.
 """

@@ -9,13 +9,6 @@ import {
 } from 'react'
 import { api, DEFAULT_DEVICE_ID } from '../lib/api'
 import { normaliseRow, realtimeAvailable, subscribeToReadings } from '../lib/supabase'
-import {
-  DEMO_STEP_MS,
-  demoAlerts,
-  demoDevices,
-  demoSeries,
-  demoStatus,
-} from '../lib/demoData'
 
 const MonitorContext = createContext(null)
 
@@ -32,19 +25,12 @@ export function MonitorProvider({ children }) {
   const [devices, setDevices] = useState([])
   const [status, setStatus] = useState(null)
   const [series, setSeries] = useState([])
+  const [rawReadings, setRawReadings] = useState([])
   const [alerts, setAlerts] = useState([])
   const [health, setHealth] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [liveTick, setLiveTick] = useState(0)
-
-  // Demo mode: the dashboard runs on locally generated vitals because there is
-  // nothing live to show. Either the API cannot be reached ('offline') or it
-  // answered but has no readings for this device yet ('no-data'). It ends the
-  // instant a real reading appears -- see refreshStatus and the realtime
-  // subscription below, which both flip it back off.
-  const [demoReason, setDemoReason] = useState(null)
-  const demoRef = useRef(false)
 
   // Tracks whether a realtime INSERT has actually arrived, so the UI can say
   // "Live" honestly rather than just because a channel was opened.
@@ -55,53 +41,33 @@ export function MonitorProvider({ children }) {
     localStorage.setItem('deviceId', deviceId)
   }, [deviceId])
 
-  const enterDemo = useCallback((reason) => {
-    demoRef.current = true
-    // Re-setting the same reason would restart the generator interval, so only
-    // write when it actually changed (offline -> no-data, say).
-    setDemoReason((prev) => (prev === reason ? prev : reason))
-  }, [])
-
-  const leaveDemo = useCallback(() => {
-    if (!demoRef.current) return
-    demoRef.current = false
-    setDemoReason(null)
-    // Never let a simulated point survive alongside a real one.
-    setSeries([])
-    setAlerts([])
-  }, [])
-
   // ---------------------------------------------------------------- polling
   const refreshStatus = useCallback(
     async (signal) => {
       try {
         const data = await api.status(deviceId, { signal })
         setError(null)
-
         if (data.sample_count > 0) {
-          leaveDemo()
           setStatus(data)
         } else {
-          // The backend is healthy, the device just has not sent anything.
-          enterDemo('no-data')
+          // Backend is up but device has no readings yet — keep status null
+          // so the UI shows the "waiting for device" state.
+          setStatus(null)
         }
       } catch (err) {
         if (err.name === 'AbortError') return
         setError(err)
-        enterDemo('offline')
       } finally {
         setLoading(false)
       }
     },
-    [deviceId, enterDemo, leaveDemo],
+    [deviceId],
   )
 
   const refreshSeries = useCallback(
     async (signal) => {
       try {
         const data = await api.series(deviceId, LIVE_WINDOW_MINUTES, false, { signal })
-        // While demo mode is on, the generator below owns `series`.
-        if (demoRef.current) return
         setSeries(data.points || [])
       } catch (err) {
         if (err.name !== 'AbortError' && err.status !== 404) {
@@ -116,8 +82,21 @@ export function MonitorProvider({ children }) {
     async (signal) => {
       try {
         const data = await api.alerts(deviceId, { limit: 50 }, { signal })
-        if (demoRef.current) return
         setAlerts(data.alerts || [])
+      } catch {
+        /* non-fatal */
+      }
+    },
+    [deviceId],
+  )
+
+  const refreshRawReadings = useCallback(
+    async (signal) => {
+      try {
+        const data = await api.readings(deviceId, 50, { signal })
+        if (data.readings) {
+          setRawReadings(data.readings)
+        }
       } catch {
         /* non-fatal */
       }
@@ -149,12 +128,16 @@ export function MonitorProvider({ children }) {
   useEffect(() => {
     const controller = new AbortController()
     refreshSeries(controller.signal)
-    const id = setInterval(() => refreshSeries(controller.signal), SERIES_POLL_MS)
+    refreshRawReadings(controller.signal)
+    const id = setInterval(() => {
+      refreshSeries(controller.signal)
+      refreshRawReadings(controller.signal)
+    }, SERIES_POLL_MS)
     return () => {
       controller.abort()
       clearInterval(id)
     }
-  }, [refreshSeries])
+  }, [refreshSeries, refreshRawReadings])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -179,52 +162,28 @@ export function MonitorProvider({ children }) {
     return () => controller.abort()
   }, [deviceId])
 
-  // ------------------------------------------------------------- demo feed
-  // Redraws the whole window each tick. The waveforms are pure functions of
-  // the clock, so a regenerated window is identical to the previous one plus
-  // the new sample -- the chart scrolls instead of jumping.
-  useEffect(() => {
-    if (!demoReason) return undefined
-
-    const paint = () => {
-      const points = demoSeries(Date.now(), LIVE_WINDOW_MINUTES)
-      setSeries(points)
-      setStatus(demoStatus(points, deviceId))
-      setLiveTick((t) => t + 1)
-    }
-
-    paint()
-    setAlerts(demoAlerts(deviceId))
-    setDevices((prev) => (prev.length ? prev : demoDevices(deviceId)))
-    setLoading(false)
-
-    const id = setInterval(paint, DEMO_STEP_MS)
-    return () => clearInterval(id)
-  }, [demoReason, deviceId])
-
   // --------------------------------------------------------------- realtime
   useEffect(() => {
     if (!realtimeAvailable) return undefined
 
-    const unsubscribe = subscribeToReadings(deviceId, (row) => {
+    const unsubscribe = subscribeToReadings(deviceId, (row, rawRow) => {
       setRealtimeActive(true)
       clearTimeout(realtimeTimer.current)
       // If inserts stop arriving, stop claiming the feed is live.
       realtimeTimer.current = setTimeout(() => setRealtimeActive(false), 30000)
 
-      // A real reading beats anything simulated: drop the demo feed at once
-      // rather than waiting for the next status poll.
-      if (demoRef.current) {
-        leaveDemo()
-        setSeries([row])
-        setLiveTick((t) => t + 1)
-        return
-      }
-
       setSeries((prev) => {
         if (prev.some((p) => p.id === row.id)) return prev
         return [...prev, row].slice(-MAX_LIVE_POINTS)
       })
+
+      if (rawRow) {
+        setRawReadings((prev) => {
+          if (prev.some((p) => p.id === rawRow.id)) return prev
+          return [rawRow, ...prev].slice(0, 100)
+        })
+      }
+
       setLiveTick((t) => t + 1)
     })
 
@@ -232,7 +191,8 @@ export function MonitorProvider({ children }) {
       unsubscribe()
       clearTimeout(realtimeTimer.current)
     }
-  }, [deviceId, leaveDemo])
+  }, [deviceId])
+
 
   // ---------------------------------------------------------------- actions
   const acknowledge = useCallback(
@@ -240,7 +200,6 @@ export function MonitorProvider({ children }) {
       setAlerts((prev) =>
         prev.map((a) => (a.id === id ? { ...a, acknowledged: true } : a)),
       )
-      if (demoRef.current) return // nothing to persist for a simulated alert
       try {
         await api.acknowledgeAlert(id)
       } catch {
@@ -252,7 +211,6 @@ export function MonitorProvider({ children }) {
 
   const acknowledgeAll = useCallback(async () => {
     setAlerts((prev) => prev.map((a) => ({ ...a, acknowledged: true })))
-    if (demoRef.current) return
     try {
       await api.acknowledgeAll(deviceId)
     } catch {
@@ -277,6 +235,7 @@ export function MonitorProvider({ children }) {
       devices,
       status,
       series,
+      rawReadings,
       latest,
       alerts,
       openAlerts,
@@ -285,21 +244,21 @@ export function MonitorProvider({ children }) {
       loading,
       liveTick,
       realtimeActive,
-      demoMode: Boolean(demoReason),
-      demoReason,
       liveWindowMinutes: LIVE_WINDOW_MINUTES,
       acknowledge,
       acknowledgeAll,
+      refreshRawReadings,
       refresh: () => {
         refreshStatus()
         refreshSeries()
         refreshAlerts()
+        refreshRawReadings()
       },
     }),
     [
-      deviceId, devices, status, series, latest, alerts, openAlerts, health,
-      error, loading, liveTick, realtimeActive, demoReason, acknowledge,
-      acknowledgeAll, refreshStatus, refreshSeries, refreshAlerts,
+      deviceId, devices, status, series, rawReadings, latest, alerts, openAlerts, health,
+      error, loading, liveTick, realtimeActive, acknowledge,
+      acknowledgeAll, refreshStatus, refreshSeries, refreshAlerts, refreshRawReadings,
     ],
   )
 

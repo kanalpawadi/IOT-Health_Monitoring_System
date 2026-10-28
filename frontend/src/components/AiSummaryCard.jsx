@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Info, RefreshCw, Sparkles, Zap } from 'lucide-react'
 import { AiOrb } from './Illustrations'
 import { api } from '../lib/api'
 import { useMonitor } from '../context/MonitorContext'
-import { demoAiSummary } from '../lib/demoData'
 import { fmtAgo, severity } from '../lib/format'
 
 /** Reveals the summary word by word, so it reads as generated rather than pasted. */
@@ -38,31 +37,14 @@ function Typewriter({ text, active }) {
 }
 
 export default function AiSummaryCard({ deviceId, status }) {
-  const { demoMode, status: assessment } = useMonitor()
+  const { status: assessment } = useMonitor()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [animate, setAnimate] = useState(false)
 
-  // The demo assessment is rebuilt every couple of seconds; reading it from a
-  // ref keeps `load` stable instead of re-firing on every simulated sample.
-  const assessmentRef = useRef(assessment)
-  useEffect(() => {
-    assessmentRef.current = assessment
-  }, [assessment])
-
   const load = useCallback(
     async (refresh = false) => {
-      // No backend, no model call -- write the summary from the simulated
-      // verdict instead, and label it as a template rather than as AI output.
-      if (demoMode) {
-        setError(null)
-        setAnimate(refresh)
-        setData(demoAiSummary(assessmentRef.current))
-        setLoading(false)
-        return
-      }
-
       setLoading(true)
       setError(null)
       try {
@@ -75,7 +57,7 @@ export default function AiSummaryCard({ deviceId, status }) {
         setLoading(false)
       }
     },
-    [deviceId, demoMode],
+    [deviceId],
   )
 
   useEffect(() => {

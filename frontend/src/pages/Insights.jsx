@@ -11,7 +11,7 @@ function Pipeline() {
     {
       icon: Cpu,
       title: 'Sensors → Supabase',
-      body: 'The ESP8266 reads MAX30102, DS18B20 and MPU6050, then streams each sample into Postgres over Wi-Fi.',
+      body: 'The ESP32 reads MAX30102, DS18B20 and MPU6050, then streams each sample into Postgres over Wi-Fi.',
       tint: 'from-accent to-accent',
     },
     {
@@ -95,7 +95,7 @@ export default function Insights() {
               Neural Telemetry & AI Vitals Analysis
             </h2>
             <p className="mt-1 text-xs text-slate-400 max-w-lg">
-              Combining real-time IoT hardware streaming (ESP8266 + MAX30102) with Groq LLM intelligence to translate complex vitals into clear caregiver insights.
+              Combining real-time IoT hardware streaming (ESP32 + MAX30102) with Groq LLM intelligence to translate complex vitals into clear caregiver insights.
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">

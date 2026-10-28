@@ -35,7 +35,7 @@ export const severity = (s) => SEVERITY[s] || SEVERITY.normal
 export const VITALS = {
   heart_rate: { label: 'Heart Rate', short: 'HR', unit: 'BPM', color: 'hr', domain: [40, 140] },
   spo2: { label: 'Blood Oxygen', short: 'SpO₂', unit: '%', color: 'spo2', domain: [85, 100] },
-  temperature_c: { label: 'Temperature', short: 'Temp', unit: '°C', color: 'temp', domain: [34, 40] },
+  temperature_c: { label: 'Temperature', short: 'Temp', unit: '°C', color: 'temp', domain: [28, 42] },
 }
 
 const toDate = (value) => {

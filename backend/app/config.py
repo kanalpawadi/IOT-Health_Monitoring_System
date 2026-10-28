@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------ #
     # Monitoring behaviour
     # ------------------------------------------------------------------ #
-    default_device_id: str = "esp8266-01"
+    default_device_id: str = "esp32-01"
 
     # How far back the trend engine looks when deciding rising/falling/stable.
     trend_window_minutes: int = 15

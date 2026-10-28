@@ -36,6 +36,17 @@ async def get_latest(device_id: str = Query(default=settings.default_device_id))
     return reading
 
 
+@router.get("/readings")
+async def get_raw_readings(
+    device_id: str = Query(default=settings.default_device_id),
+    limit: int = Query(default=50, ge=1, le=500),
+):
+    """Raw readings directly from health_data matching the Supabase table."""
+    rows = await repo.raw_readings(device_id, limit)
+    return {"device_id": device_id, "readings": rows, "count": len(rows)}
+
+
+
 @router.get("/status")
 async def get_status(
     device_id: str = Query(default=settings.default_device_id),

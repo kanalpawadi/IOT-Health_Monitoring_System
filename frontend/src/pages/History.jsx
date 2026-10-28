@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { CalendarRange, Loader2 } from 'lucide-react'
 import ErrorBoundary from '../components/ErrorBoundary'
 import LiveChart from '../components/LiveChart'
+import RawReadingsTable from '../components/RawReadingsTable'
 import { useMonitor } from '../context/MonitorContext'
 import { api } from '../lib/api'
 import { demoHistory } from '../lib/demoData'
@@ -259,6 +260,10 @@ export default function History() {
               })}
             </div>
           </section>
+
+          <ErrorBoundary label="The raw telemetry feed">
+            <RawReadingsTable />
+          </ErrorBoundary>
         </>
       )}
     </div>

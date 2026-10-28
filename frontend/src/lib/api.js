@@ -1,7 +1,7 @@
 const BASE = import.meta.env.VITE_API_BASE || '/api'
 
 export const DEFAULT_DEVICE_ID =
-  import.meta.env.VITE_DEFAULT_DEVICE_ID || 'esp8266-01'
+  import.meta.env.VITE_DEFAULT_DEVICE_ID || 'esp32-01'
 
 export class ApiError extends Error {
   constructor(message, status) {
@@ -82,6 +82,9 @@ export const api = {
 
   latest: (deviceId, opts) =>
     request('/latest', { params: { device_id: deviceId }, ...opts }),
+
+  readings: (deviceId, limit = 50, opts) =>
+    request('/readings', { params: { device_id: deviceId, limit }, ...opts }),
 
   series: (deviceId, minutes = 15, downsample = false, opts) =>
     request('/series', {

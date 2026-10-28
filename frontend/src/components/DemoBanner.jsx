@@ -34,7 +34,7 @@ export default function DemoBanner() {
           {offline
             ? `The API could not be reached${error?.message ? ` (${error.message})` : ''}. `
             : 'The backend is up but this device has not sent any readings yet. '}
-          Connect the ESP8266 and the dashboard switches to live data on its own.
+          Connect the ESP32 and the dashboard switches to live data on its own.
         </div>
       </div>
 
